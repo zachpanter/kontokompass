@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS transaction (
                                     description text NOT NULL,
                                     debit float4,
                                     credit float4,
-                                    balance float4,
+                                    balance float4 NOT NULL,
                                     classification_text text NOT NULL,
                                     classification_id int
 );
