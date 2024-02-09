@@ -30,6 +30,7 @@ import (
 func main() {
 	router := gin.Default()
 	router.GET("/greeting", GetGreeting)
+	// Reach via: http://localhost:8080/swagger/index.html
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.Run()
 }
