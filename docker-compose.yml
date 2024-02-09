@@ -1,0 +1,86 @@
+version: '3.5'  # Or a recent Compose file version you prefer
+
+# How to Use
+
+# Create init.sql: Write your SQL script to create tables, initial data, etc.
+# Place Files: Put docker-compose.yml and init.sql in the same directory.
+# Run: From that directory, execute docker-compose up -d (the -d runs it in the background).
+
+# Important Notes:
+
+# Dependencies: Docker Compose will ensure Zookeeper starts before Kafka. If your initialization script heavily depends on Kafka, add the depends_on directive to the postgres service as well.
+# Script Location: If your init.sql is elsewhere, change the volume path.
+# Security: Replace sample usernames and passwords with your own secure ones!
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest # The core dependency for Kafka, provides coordination.
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181 # Exposes the client port.
+    ports:
+      - 2181:2181 # Maps the ports for Zookeeper to my host machine
+
+  kafka:
+    image: confluentinc/cp-kafka:latest # The Kafka broker itself, configured to use Zookeeper.
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181  # Sets up the connection to Zookeeper
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092 # and advertises listeners for clients.
+    ports:
+      - 9092:9092 # Maps the ports for Kafka to my host machine
+
+  postgres:
+    image: postgres:latest # A standard PostgreSQL database container.
+    environment: # Initializes the database with your credentials and a default database name.
+      POSTGRES_USER: myuser    # Change to your desired username
+      POSTGRES_PASSWORD: mypassword  # Change to a strong password
+      POSTGRES_DB: mydatabase  # Change to your desired database name
+    ports:
+      - 5432:5432 # Maps the ports for Postgres to my host machine
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # Mount your SQL script
+      # Assumes a file named init.sql in the same directory as your docker-compose.yml. This script contains the SQL commands to set up your database schema and any initial data.
+
+# How to Use
+# Logstash Configuration: Create a logstash directory at the same level as your docker-compose.yml with a logstash.conf for data input and output.
+# Secure Password: Generate a strong password for Elasticsearch, don't leave it as "changeme".
+# Run: From the directory containing your docker-compose.yml, execute docker-compose up -d
+
+# Things to Remember
+# For production, replace single-node with appropriate cluster discovery, consult the configuration options for ELASTIC_PASSWORD, and explore further security.
+# Adapt your Logstash configuration to the data sources you plan to utilize (file input, Syslog, Kafka, etc.).
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.6.2 # Specify the version you need
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node # Bootstrap for development, Ideal for development/testing environments.
+      - ELASTIC_PASSWORD=changeme  # Set a secure password
+    volumes:
+      - esdata:/usr/share/elasticsearch/data  # Data persistence
+    ports:
+      - 9200:9200
+      - 9300:9300
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.6.2 # Match Elasticsearch version
+    container_name: logstash
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline # Mount your pipeline config, Assumes you have a logstash directory with your pipeline configuration (e.g., logstash.conf).
+    depends_on:
+      - elasticsearch # Ensures Elasticsearch is running before Logstash and Kibana start.
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.6.2 # Match Elasticsearch version
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch # Ensures Elasticsearch is running before Logstash and Kibana start.
+
+volumes:
+  esdata: # Named volume for Elasticsearch data
+  # esdata: Saves your Elasticsearch data, preventing loss with container restarts.

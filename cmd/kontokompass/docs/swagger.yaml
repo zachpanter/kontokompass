@@ -1,0 +1,22 @@
+info:
+  contact: {}
+paths:
+  /greeting:
+    get:
+      description: Greets the user with name if provided in query string.
+      parameters:
+      - description: Name to greet
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Returns a simple greeting message.
+swagger: "2.0"
