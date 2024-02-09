@@ -81,16 +81,24 @@ services:
     depends_on:
       - elasticsearch # Ensures Elasticsearch is running before Logstash and Kibana start.
 
+# Assumptions and Additional Steps:
+# Your Go Code: Your Go microservice code should be capable of sending metrics to Graphite (likely using a StatsD client library).
+# Dockerfile: You'll need a Dockerfile in the ./your-go-service directory to build your Go application image.
+# Grafana Datasource: Once Grafana is running, you'll need to add Graphite as a data source within the Grafana UI. (https://grafana.com/docs/grafana/latest/features/datasources/graphite/)
+# Custom Configuration: For both Graphite and Grafana, consider further customization and persistent storage if used in a production-like setting.
+
+# Note: If your Grafana setup has more sophisticated dashboards, configuration can get more complex with provisioning, etc.
+
   golang-service:
-    build: ./your-go-service  # Path to your Go service's Dockerfile
+    build: ./your-go-service  # Path to your Go service's Dockerfile, Instructs Docker to build your service from a Dockerfile in the specified directory.
     ports:
       - "8080:8080"  # Expose your microservice's port
     depends_on:
-      - graphite  # Ensure Graphite is available
+      - graphite  # Ensure Graphite is available in case it sends metrics there.
 
   graphite:
-    image: graphiteapp/graphite-statsd
-    ports:
+    image: graphiteapp/graphite-statsd # Uses a pre-built image containing Graphite and StatsD components.
+    ports: # Exposes necessary Graphite ports for receiving metrics, accessing the web interface, and receiving StatsD data.
       - "2003-2004:2003-2004" # Graphite carbon ports
       - "80:80"                 # Graphite web interface port
       - "8125:8125/udp"         # StatsD port
