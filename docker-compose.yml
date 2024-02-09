@@ -41,3 +41,46 @@ services:
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # Mount your SQL script
       # Assumes a file named init.sql in the same directory as your docker-compose.yml. This script contains the SQL commands to set up your database schema and any initial data.
+
+# How to Use
+# Logstash Configuration: Create a logstash directory at the same level as your docker-compose.yml with a logstash.conf for data input and output.
+# Secure Password: Generate a strong password for Elasticsearch, don't leave it as "changeme".
+# Run: From the directory containing your docker-compose.yml, execute docker-compose up -d
+
+# Things to Remember
+# For production, replace single-node with appropriate cluster discovery, consult the configuration options for ELASTIC_PASSWORD, and explore further security.
+# Adapt your Logstash configuration to the data sources you plan to utilize (file input, Syslog, Kafka, etc.).
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.6.2 # Specify the version you need
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node # Bootstrap for development, Ideal for development/testing environments.
+      - ELASTIC_PASSWORD=changeme  # Set a secure password
+    volumes:
+      - esdata:/usr/share/elasticsearch/data  # Data persistence
+    ports:
+      - 9200:9200
+      - 9300:9300
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.6.2 # Match Elasticsearch version
+    container_name: logstash
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline # Mount your pipeline config, Assumes you have a logstash directory with your pipeline configuration (e.g., logstash.conf).
+    depends_on:
+      - elasticsearch # Ensures Elasticsearch is running before Logstash and Kibana start.
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.6.2 # Match Elasticsearch version
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch # Ensures Elasticsearch is running before Logstash and Kibana start.
+
+volumes:
+  esdata: # Named volume for Elasticsearch data
+  # esdata: Saves your Elasticsearch data, preventing loss with container restarts.
