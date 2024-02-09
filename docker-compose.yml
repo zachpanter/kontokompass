@@ -81,6 +81,32 @@ services:
     depends_on:
       - elasticsearch # Ensures Elasticsearch is running before Logstash and Kibana start.
 
+  golang-service:
+    build: ./your-go-service  # Path to your Go service's Dockerfile
+    ports:
+      - "8080:8080"  # Expose your microservice's port
+    depends_on:
+      - graphite  # Ensure Graphite is available
+
+  graphite:
+    image: graphiteapp/graphite-statsd
+    ports:
+      - "2003-2004:2003-2004" # Graphite carbon ports
+      - "80:80"                 # Graphite web interface port
+      - "8125:8125/udp"         # StatsD port
+
+  grafana:
+    image: grafana/grafana
+    depends_on:
+      - graphite
+    ports:
+      - "3000:3000"  # Grafana dashboard port
+    volumes:
+      - ./grafana-config:/etc/grafana  # Optional: Mount Grafana configuration
+
+
 volumes:
   esdata: # Named volume for Elasticsearch data
   # esdata: Saves your Elasticsearch data, preventing loss with container restarts.
+
+
