@@ -8,30 +8,29 @@ import (
 	"net/http"
 )
 
-// @title           Swagger Example API
+// @title           KontoKompass
 // @version         1.0
-// @description     This is a sample server celler server.
-// @termsOfService  http://swagger.io/terms/
-
-// @contact.name   API Support
-// @contact.url    http://www.swagger.io/support
-// @contact.email  support@swagger.io
-
-// @license.name  Apache 2.0
-// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
-
+// @description     A Personal Finance solution for planning and analytics.
+// @contact.name   Zach Panter
+// @contact.email  zachpanter@gmail.com
+// @license.name  N/A
+// @license.url   https://choosealicense.com/
 // @host      localhost:8080
 // @BasePath  /api/v1
-
 // @securityDefinitions.basic  BasicAuth
-
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
+
 	router := gin.Default()
+
+	// Routes
 	router.GET("/greeting", GetGreeting)
+
 	// Reach via: http://localhost:8080/swagger/index.html
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	// Run
 	router.Run()
 }
 

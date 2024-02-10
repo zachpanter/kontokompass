@@ -1,17 +1,16 @@
+CREATE TABLE IF NOT EXISTS category (
+cat_id serial PRIMARY KEY,
+cat_name text NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS transaction (
-                                    id serial PRIMARY KEY,
-                                    postdate timestamp NOT NULL,
-                                    description text NOT NULL,
-                                    debit float4,
-                                    credit float4,
-                                    balance float4 NOT NULL,
-                                    classification_text text NOT NULL,
-                                    classification_id int
+ta_id serial PRIMARY KEY,
+ta_postdate timestamp NOT NULL,
+ta_description text NOT NULL,
+ta_debit float4,
+ta_credit float4,
+ta_balance float4 NOT NULL,
+classification_text text NOT NULL,
+cat_id int
 );
-ALTER TABLE ONLY transaction ADD CONSTRAINT "classification_id_fkey" FOREIGN KEY ("classification_id") REFERENCES classification("id");
-
-
-CREATE TABLE IF NOT EXISTS classification (
-                                        id serial PRIMARY KEY,
-                                        name text NOT NULL
-);
+ALTER TABLE ONLY transaction ADD CONSTRAINT "cat_id_fkey" FOREIGN KEY ("cat_id") REFERENCES category("cat_id");

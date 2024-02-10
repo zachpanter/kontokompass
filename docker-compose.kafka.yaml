@@ -1,0 +1,56 @@
+version: '3.5'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest # The core dependency for Kafka, provides coordination.
+    restart: always
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181 # Exposes the client port.
+    ports:
+      - 2181:2181 # Maps the ports for Zookeeper to my host machine
+
+  kafka:
+    image: confluentinc/cp-kafka:latest # The Kafka broker itself, configured to use Zookeeper.
+    restart: always
+    depends_on:
+      - zookeeper
+    networks:
+      - mesh
+    expose:
+      - "29092"
+    ports:
+      - "9092:9092" # Maps the ports for Kafka to my host machine
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT, PLAINTEXT_CONTAINER:PLAINTEXT
+#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092 # and advertises listeners for clients.
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:9092, PLAINTEXT_CONTAINER://kafka:29092
+      KAFKA_OFFEST_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    volumes:
+      - kafka:/var/lib/kafka
+
+  kafka-init:
+    image: confluentinc/cp-kafka:6.2.4
+    depends_on:
+      - kafka
+    networks:
+      - mesh
+#    entrypoint: [ "/bin/sh", "-c" ]
+    command: >
+      sh -c "echo -e 'kafka-topics list blocks until kafka is reachable'
+            kafka-topics --bootstrap-server kafka:29092 --list
+            echo -e 'Creating kafka topics'
+            kafka-topics --boostrap-server kafka:29092 --create --if-not-exists --replication-factor=2 --parititions=12 --topic kk.enhancement
+            echo -e 'Successfully created the following topics:'
+            kafka-topics --bootstrap-server kafka:29092 --list"
+
+networks:
+  mesh: {}
+
+volumes:
+  kafka:
+  zookeeper:

@@ -1,0 +1,35 @@
+version: '3.5'  # Or a recent Compose file version you prefer
+
+# Create init.sql: Write your SQL script to create tables, initial data, etc.
+# Place Files: Put docker-compose.postgres.yml and init.sql in the same directory.
+# Script Location: If your init.sql is elsewhere, change the volume path.
+# Security: Replace sample usernames and passwords with your own secure ones!
+
+services:
+  postgres:
+    image: postgres:latest # A standard PostgreSQL database container.
+    restart: always
+    environment: # Initializes the database with your credentials and a default database name.
+      POSTGRES_USER: myuser    # Change to your desired username
+      POSTGRES_PASSWORD: mypassword  # Change to a strong password
+      POSTGRES_DB: mydatabase  # Change to your desired database name
+    ports:
+      - 5432:5432 # Maps the ports for Postgres to my host machine
+    volumes:
+      - ./internal/storage/scripts/schema.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  postgres:
+
+#  Initialization Scripts Directory
+##  Create a folder named initdb next to your docker-compose.yml file.
+##  Place your SQL initialization scripts inside this folder (e.g., create_tables.sql, seed_data.sql).
+
+# Explanation
+## volumes: This mounts the ./initdb folder on your host machine to the /docker-entrypoint-initdb.d directory inside the PostgreSQL container.
+## The PostgreSQL Docker image runs scripts within this directory on the first startup.
+
+# Key Points
+## Script Execution Order: If you have multiple SQL scripts, name them in a way that ensures they are executed in the correct sequence (e.g., 01_create_tables.sql, 02_seed_data.sql).
+## Permissions: Be mindful of file permissions. The scripts in your initdb folder might need to be executable depending on your setup.
+## Idempotency: Make your initialization scripts idempotent, meaning they can be safely run multiple times without adverse side effects.
