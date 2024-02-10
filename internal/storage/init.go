@@ -10,9 +10,8 @@ import (
 	"runtime"
 )
 
-func OpenDBPool(ctx context.Context) *Queries {
-	conf := config.NewConfig()
-	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=verify-full", conf.DBUser, conf.DBPass, conf.DBHost, conf.DBPort, conf.DBSchema)
+func OpenDBPool(ctx context.Context, conf *config.Config) *Queries {
+	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=disable", conf.DBUser, conf.DBPass, conf.DBHost, conf.DBPort, conf.DBSchema)
 	dbPool, err := sql.Open("postgres", dsn)
 	if err != nil {
 		log.Fatal("failed to connect DB", err)
@@ -20,11 +19,11 @@ func OpenDBPool(ctx context.Context) *Queries {
 
 	pingErr := dbPool.PingContext(ctx)
 	if pingErr != nil {
-		log.Fatal("failed to ping DB", pingErr)
+		log.Fatal("failed to ping DB ", pingErr)
 	}
 	dbPool.SetMaxOpenConns(runtime.NumCPU())
 	dbPool.SetMaxIdleConns(runtime.NumCPU())
 
-	queries := New(dbPool)
-	return queries
+	dbConn := New(dbPool)
+	return dbConn
 }
