@@ -12,5 +12,5 @@ func main() {
 	ctx := context.Background()
 	conf := config.NewConfig()
 	dbConn := storage.OpenDBPool(ctx, conf)
-	handler.NewAPI(ctx, dbConn)
+	handler.NewAPI(ctx, conf, dbConn)
 }
