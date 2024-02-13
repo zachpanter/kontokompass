@@ -1,0 +1,67 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a sample Gin-based API server.",
+        "title": "Gin Swagger API",
+        "contact": {
+            "name": "API Support",
+            "email": "support@your-domain.com"
+        },
+        "license": {
+            "name": "MIT"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
+    "paths": {
+        "/greeting": {
+            "get": {
+                "description": "Greets the user with name if provided in query string.",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Returns a simple greeting message.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name to greet",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/transaction": {
+            "post": {
+                "description": "Receives a transaction payload via a POST and then inserts it into the DB",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Inserts a transaction into the DB",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

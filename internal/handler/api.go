@@ -42,6 +42,8 @@ func NewAPI(ctx context.Context, conf *config.Config, dbConn *storage.Queries) {
 	// Routes
 	api.router.GET("/greeting", api.GetGreeting)
 
+	api.router.POST("/transaction", api.InsertTransaction)
+
 	// Reach via: http://localhost:8080/swagger/index.html
 	api.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -69,5 +71,31 @@ func (a *API) GetGreeting(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": message,
+	})
+}
+
+// InsertTransaction godoc
+// @Summary Inserts a transaction into the DB
+// @Description Receives a transaction payload via a POST and then inserts it into the DB
+// @Produce  json
+// @Success 200 {object} map[string]string
+// @Router /transaction [post]
+func (a *API) InsertTransaction(c *gin.Context) {
+	var payload storage.InsertTransactionParams
+
+	// Bind the incoming JSON to the payload struct
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
+		return
+	}
+
+	// Do something with the received data
+
+	a.dbConn.InsertTransaction(a.ctx, payload)
+
+	// Response:
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Payload received!",
+		"data":    payload,
 	})
 }

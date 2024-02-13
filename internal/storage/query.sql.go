@@ -12,26 +12,26 @@ import (
 )
 
 const insertTransaction = `-- name: InsertTransaction :exec
-INSERT INTO transaction (postdate, description, debit, credit, balance, classification_text) VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO transaction (ta_postdate, ta_description, ta_debit, ta_credit, ta_balance, ta_classification_text) VALUES ($1, $2, $3, $4, $5, $6)
 `
 
 type InsertTransactionParams struct {
-	Postdate           time.Time
-	Description        string
-	Debit              sql.NullFloat64
-	Credit             sql.NullFloat64
-	Balance            float32
-	ClassificationText string
+	TaPostdate           time.Time       `json:"ta_postdate"`
+	TaDescription        string          `json:"ta_description"`
+	TaDebit              sql.NullFloat64 `json:"ta_debit"`
+	TaCredit             sql.NullFloat64 `json:"ta_credit"`
+	TaBalance            float32         `json:"ta_balance"`
+	TaClassificationText string          `json:"ta_classification_text"`
 }
 
 func (q *Queries) InsertTransaction(ctx context.Context, arg InsertTransactionParams) error {
 	_, err := q.db.ExecContext(ctx, insertTransaction,
-		arg.Postdate,
-		arg.Description,
-		arg.Debit,
-		arg.Credit,
-		arg.Balance,
-		arg.ClassificationText,
+		arg.TaPostdate,
+		arg.TaDescription,
+		arg.TaDebit,
+		arg.TaCredit,
+		arg.TaBalance,
+		arg.TaClassificationText,
 	)
 	return err
 }

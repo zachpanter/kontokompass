@@ -1,0 +1,45 @@
+basePath: /api/v1
+host: localhost:8080
+info:
+  contact:
+    email: support@your-domain.com
+    name: API Support
+  description: This is a sample Gin-based API server.
+  license:
+    name: MIT
+  title: Gin Swagger API
+  version: "1.0"
+paths:
+  /greeting:
+    get:
+      description: Greets the user with name if provided in query string.
+      parameters:
+      - description: Name to greet
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Returns a simple greeting message.
+  /transaction:
+    post:
+      description: Receives a transaction payload via a POST and then inserts it into
+        the DB
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Inserts a transaction into the DB
+swagger: "2.0"

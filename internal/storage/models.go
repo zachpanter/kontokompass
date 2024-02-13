@@ -9,18 +9,18 @@ import (
 	"time"
 )
 
-type Classification struct {
-	ID   int32
-	Name string
+type Category struct {
+	CatID   int32  `json:"cat_id"`
+	CatName string `json:"cat_name"`
 }
 
 type Transaction struct {
-	ID                 int32
-	Postdate           time.Time
-	Description        string
-	Debit              sql.NullFloat64
-	Credit             sql.NullFloat64
-	Balance            float32
-	ClassificationText string
-	ClassificationID   sql.NullInt32
+	TaID                 int32           `json:"ta_id"`
+	TaPostdate           time.Time       `json:"ta_postdate"`
+	TaDescription        string          `json:"ta_description"`
+	TaDebit              sql.NullFloat64 `json:"ta_debit"`
+	TaCredit             sql.NullFloat64 `json:"ta_credit"`
+	TaBalance            float32         `json:"ta_balance"`
+	TaClassificationText string          `json:"ta_classification_text"`
+	CatID                sql.NullInt32   `json:"cat_id"`
 }
