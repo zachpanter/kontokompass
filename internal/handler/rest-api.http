@@ -1,0 +1,7 @@
+GET http://localhost:8080/greeting
+Accept: application/json
+
+<> 2024-02-19T070045.200.json
+
+
+###
