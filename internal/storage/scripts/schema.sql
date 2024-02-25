@@ -13,4 +13,8 @@ ta_balance float4 NOT NULL,
 ta_classification_text text NOT NULL,
 cat_id int
 );
-ALTER TABLE ONLY transaction ADD CONSTRAINT "cat_id_fkey" FOREIGN KEY ("cat_id") REFERENCES category("cat_id");
+ALTER TABLE transaction
+    ADD CONSTRAINT unique_transaction UNIQUE (ta_postdate, ta_description, ta_debit, ta_credit, ta_balance, ta_classification_text);
+
+ALTER TABLE ONLY transaction
+    ADD CONSTRAINT "cat_id_fkey" FOREIGN KEY ("cat_id") REFERENCES category("cat_id");

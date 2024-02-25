@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -91,7 +92,13 @@ func (a *API) InsertTransaction(c *gin.Context) {
 
 	// Do something with the received data
 
-	a.dbConn.InsertTransaction(a.ctx, payload)
+	insertTransactionErr := a.dbConn.InsertTransaction(a.ctx, payload)
+	if insertTransactionErr != nil {
+		fmt.Printf("%e", insertTransactionErr)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": insertTransactionErr,
+		})
+	}
 
 	// Response:
 	c.JSON(http.StatusOK, gin.H{
