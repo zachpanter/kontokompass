@@ -2,13 +2,13 @@ package handler
 
 import (
 	"context"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/zachpanter/kontokompass/internal/config"
 	"github.com/zachpanter/kontokompass/internal/storage"
 	"net/http"
+	"strconv"
 )
 
 // TODO: GET transactions (with filtering options (date range, account, category)
@@ -23,7 +23,7 @@ import (
 // DELETE: Deletes a category.
 
 type API struct {
-	router *gin.Engine
+	Router *gin.Engine
 	ctx    context.Context
 	dbConn *storage.Queries
 	conf   *config.Config
@@ -33,27 +33,20 @@ type API struct {
 func NewAPI(ctx context.Context, conf *config.Config, dbConn *storage.Queries) *API {
 
 	api := &API{
-		router: gin.Default(),
+		Router: gin.Default(),
 		ctx:    ctx,
 		dbConn: dbConn,
 		conf:   conf,
 	}
 
 	// Routes
-	api.router.GET("/greeting", api.TransactionGet)
+	api.Router.GET("/transaction/:transaction_id", api.TransactionGet)
 
-	api.router.POST("/transaction", api.TransactionPost)
+	api.Router.POST("/transaction", api.TransactionPost)
 
 	// Reach via: http://localhost:8080/swagger/index.html
-	api.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	api.Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// Run
-	go func() {
-		err := api.router.Run()
-		if err != nil {
-			panic(err)
-		}
-	}()
 	return api
 }
 
@@ -63,18 +56,23 @@ func NewAPI(ctx context.Context, conf *config.Config, dbConn *storage.Queries) *
 // @Produce  json
 // @Param name query string false "Name to greet"
 // @Success 200 {object} map[string]string
-// @Router /greeting [get]
+// @Router /transaction [get]
 func (a *API) TransactionGet(ctx *gin.Context) {
-	name := ctx.Query("name")
-	message := "Hello"
-
-	if name != "" {
-		message += ", " + name
+	idString := ctx.Param("transaction_id")
+	id, convErr := strconv.Atoi(idString)
+	if convErr != nil {
+		// TODO: Log it
+		ctx.AbortWithError(http.StatusInternalServerError, convErr)
+		return
+	}
+	ta, taSelectErr := a.dbConn.TransactionSelect(ctx, int32(id))
+	if taSelectErr != nil {
+		// TODO: Log it
+		ctx.AbortWithError(http.StatusInternalServerError, taSelectErr)
+		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": message,
-	})
+	ctx.JSON(http.StatusOK, ta)
 }
 
 // TransactionPost godoc
@@ -83,12 +81,13 @@ func (a *API) TransactionGet(ctx *gin.Context) {
 // @Produce  json
 // @Success 200 {object} map[string]string
 // @Router /transaction [post]
-func (a *API) TransactionPost(c *gin.Context) {
+func (a *API) TransactionPost(ctx *gin.Context) {
 	var payload storage.TransactionInsertParams
 
 	// Bind the incoming JSON to the payload struct
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
+	if bindErr := ctx.ShouldBindJSON(&payload); bindErr != nil {
+		// TODO: Log it
+		ctx.AbortWithError(http.StatusBadRequest, bindErr)
 		return
 	}
 
@@ -96,14 +95,13 @@ func (a *API) TransactionPost(c *gin.Context) {
 
 	insertTransactionErr := a.dbConn.TransactionInsert(a.ctx, payload)
 	if insertTransactionErr != nil {
-		fmt.Printf("%e", insertTransactionErr)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": insertTransactionErr,
-		})
+		// TODO: Log it
+		ctx.AbortWithError(http.StatusInternalServerError, insertTransactionErr)
+		return
 	}
 
-	// Response:
-	c.JSON(http.StatusOK, gin.H{
+	// Response
+	ctx.JSON(http.StatusOK, gin.H{
 		"message": "Payload received!",
 		"data":    payload,
 	})
