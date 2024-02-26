@@ -8,7 +8,6 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/zachpanter/kontokompass/internal/config"
 	"github.com/zachpanter/kontokompass/internal/storage"
-	"log"
 	"net/http"
 )
 
@@ -31,7 +30,7 @@ type API struct {
 }
 
 // NewAPI is the constructor for the API class
-func NewAPI(ctx context.Context, conf *config.Config, dbConn *storage.Queries) {
+func NewAPI(ctx context.Context, conf *config.Config, dbConn *storage.Queries) *API {
 
 	api := &API{
 		router: gin.Default(),
@@ -41,28 +40,31 @@ func NewAPI(ctx context.Context, conf *config.Config, dbConn *storage.Queries) {
 	}
 
 	// Routes
-	api.router.GET("/greeting", api.GetGreeting)
+	api.router.GET("/greeting", api.TransactionGet)
 
-	api.router.POST("/transaction", api.InsertTransaction)
+	api.router.POST("/transaction", api.TransactionPost)
 
 	// Reach via: http://localhost:8080/swagger/index.html
 	api.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Run
-	runErr := api.router.Run()
-	if runErr != nil {
-		log.Panic("Unable to create router")
-	}
+	go func() {
+		err := api.router.Run()
+		if err != nil {
+			panic(err)
+		}
+	}()
+	return api
 }
 
-// GetGreeting godoc
-// @Summary Returns a simple greeting message.
-// @Description Greets the user with name if provided in query string.
+// TransactionGet godoc
+// @Summary Selects a transaction.
+// @Description Gets a transaction using it's id.
 // @Produce  json
 // @Param name query string false "Name to greet"
 // @Success 200 {object} map[string]string
 // @Router /greeting [get]
-func (a *API) GetGreeting(ctx *gin.Context) {
+func (a *API) TransactionGet(ctx *gin.Context) {
 	name := ctx.Query("name")
 	message := "Hello"
 
@@ -75,14 +77,14 @@ func (a *API) GetGreeting(ctx *gin.Context) {
 	})
 }
 
-// InsertTransaction godoc
+// TransactionPost godoc
 // @Summary Inserts a transaction into the DB
 // @Description Receives a transaction payload via a POST and then inserts it into the DB
 // @Produce  json
 // @Success 200 {object} map[string]string
 // @Router /transaction [post]
-func (a *API) InsertTransaction(c *gin.Context) {
-	var payload storage.InsertTransactionParams
+func (a *API) TransactionPost(c *gin.Context) {
+	var payload storage.TransactionInsertParams
 
 	// Bind the incoming JSON to the payload struct
 	if err := c.ShouldBindJSON(&payload); err != nil {
@@ -92,7 +94,7 @@ func (a *API) InsertTransaction(c *gin.Context) {
 
 	// Do something with the received data
 
-	insertTransactionErr := a.dbConn.InsertTransaction(a.ctx, payload)
+	insertTransactionErr := a.dbConn.TransactionInsert(a.ctx, payload)
 	if insertTransactionErr != nil {
 		fmt.Printf("%e", insertTransactionErr)
 		c.JSON(http.StatusInternalServerError, gin.H{
