@@ -11,13 +11,13 @@ import (
 	"time"
 )
 
-const insertTransaction = `-- name: InsertTransaction :exec
+const transactionInsert = `-- name: TransactionInsert :exec
 INSERT INTO transaction (ta_postdate, ta_description, ta_debit, ta_credit, ta_balance, ta_classification_text)
 VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT ON CONSTRAINT unique_transaction DO NOTHING
 `
 
-type InsertTransactionParams struct {
+type TransactionInsertParams struct {
 	TaPostdate           time.Time       `json:"ta_postdate"`
 	TaDescription        string          `json:"ta_description"`
 	TaDebit              sql.NullFloat64 `json:"ta_debit"`
@@ -26,8 +26,8 @@ type InsertTransactionParams struct {
 	TaClassificationText string          `json:"ta_classification_text"`
 }
 
-func (q *Queries) InsertTransaction(ctx context.Context, arg InsertTransactionParams) error {
-	_, err := q.db.ExecContext(ctx, insertTransaction,
+func (q *Queries) TransactionInsert(ctx context.Context, arg TransactionInsertParams) error {
+	_, err := q.db.ExecContext(ctx, transactionInsert,
 		arg.TaPostdate,
 		arg.TaDescription,
 		arg.TaDebit,
@@ -36,4 +36,17 @@ func (q *Queries) InsertTransaction(ctx context.Context, arg InsertTransactionPa
 		arg.TaClassificationText,
 	)
 	return err
+}
+
+const transactionSelect = `-- name: TransactionSelect :one
+SELECT (ta_postdate, ta_description, ta_debit, ta_credit, ta_balance, ta_classification_text)
+FROM transaction
+WHERE ta_id = $1
+`
+
+func (q *Queries) TransactionSelect(ctx context.Context, taID int32) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, transactionSelect, taID)
+	var column_1 interface{}
+	err := row.Scan(&column_1)
+	return column_1, err
 }
