@@ -8,5 +8,3 @@ sql:
         emit_json_tags: true
         package: "storage"
         out: "../"
-
-#        TODO: Add json auto-tagging

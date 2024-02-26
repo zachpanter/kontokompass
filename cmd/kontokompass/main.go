@@ -20,5 +20,10 @@ func main() {
 	ctx := context.Background()
 	conf := config.NewConfig()
 	dbConn := storage.OpenDBPool(ctx, conf)
-	handler.NewAPI(ctx, conf, dbConn)
+	apiHandler := handler.NewAPI(ctx, conf, dbConn)
+	routerRunErr := apiHandler.Router.Run()
+	if routerRunErr != nil {
+		// TODO: Log it
+		panic(routerRunErr)
+	}
 }

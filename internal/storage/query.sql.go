@@ -39,14 +39,30 @@ func (q *Queries) TransactionInsert(ctx context.Context, arg TransactionInsertPa
 }
 
 const transactionSelect = `-- name: TransactionSelect :one
-SELECT (ta_postdate, ta_description, ta_debit, ta_credit, ta_balance, ta_classification_text)
+SELECT ta_postdate, ta_description, ta_debit, ta_credit, ta_balance, ta_classification_text
 FROM transaction
 WHERE ta_id = $1
 `
 
-func (q *Queries) TransactionSelect(ctx context.Context, taID int32) (interface{}, error) {
+type TransactionSelectRow struct {
+	TaPostdate           time.Time       `json:"ta_postdate"`
+	TaDescription        string          `json:"ta_description"`
+	TaDebit              sql.NullFloat64 `json:"ta_debit"`
+	TaCredit             sql.NullFloat64 `json:"ta_credit"`
+	TaBalance            float32         `json:"ta_balance"`
+	TaClassificationText string          `json:"ta_classification_text"`
+}
+
+func (q *Queries) TransactionSelect(ctx context.Context, taID int32) (TransactionSelectRow, error) {
 	row := q.db.QueryRowContext(ctx, transactionSelect, taID)
-	var column_1 interface{}
-	err := row.Scan(&column_1)
-	return column_1, err
+	var i TransactionSelectRow
+	err := row.Scan(
+		&i.TaPostdate,
+		&i.TaDescription,
+		&i.TaDebit,
+		&i.TaCredit,
+		&i.TaBalance,
+		&i.TaClassificationText,
+	)
+	return i, err
 }
