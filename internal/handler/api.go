@@ -22,15 +22,20 @@ import (
 // PUT: Edits a category.
 // DELETE: Deletes a category.
 
+type DBConn interface {
+	TransactionSelect(ctx context.Context, taID int32) (storage.TransactionSelectRow, error)
+	TransactionInsert(ctx context.Context, arg storage.TransactionInsertParams) error
+}
+
 type API struct {
 	Router *gin.Engine
 	ctx    context.Context
-	dbConn *storage.Queries
+	dbConn DBConn
 	conf   *config.Config
 }
 
 // NewAPI is the constructor for the API class
-func NewAPI(ctx context.Context, conf *config.Config, dbConn *storage.Queries) *API {
+func NewAPI(ctx context.Context, conf *config.Config, dbConn DBConn) *API {
 
 	api := &API{
 		Router: gin.Default(),
@@ -52,7 +57,7 @@ func NewAPI(ctx context.Context, conf *config.Config, dbConn *storage.Queries) *
 
 // TransactionGet godoc
 // @Summary Selects a transaction.
-// @Description Gets a transaction using it's id.
+// @Description Gets a transaction using its id.
 // @Produce  json
 // @Param name query string false "Name to greet"
 // @Success 200 {object} map[string]string
@@ -66,6 +71,7 @@ func (a *API) TransactionGet(ctx *gin.Context) {
 		return
 	}
 	ta, taSelectErr := a.dbConn.TransactionSelect(ctx, int32(id))
+
 	if taSelectErr != nil {
 		// TODO: Log it
 		ctx.AbortWithError(http.StatusInternalServerError, taSelectErr)
