@@ -12,3 +12,6 @@ run-swag: $(SWAG_TARGET)
 # Standard target for cleaning generated files
 clean:
 	rm -rf docs
+
+proto:
+	protoc --go_out=. internal/handler/transaction.proto

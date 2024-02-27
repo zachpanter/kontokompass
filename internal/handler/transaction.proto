@@ -1,0 +1,23 @@
+syntax="proto3";
+package handler;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "internal/handler";
+
+service KontoKompassAPI {
+  rpc TransactionGet (TransactionRequest) returns (Transaction) {}
+}
+
+message TransactionRequest {
+  int32 transaction_id = 1;
+}
+
+message Transaction {
+  google.protobuf.Timestamp post_date = 1;
+  string description = 2;
+  float debit = 3;
+  float credit = 4;
+  float balance = 5;
+  int32 classification_id = 6;
+}
