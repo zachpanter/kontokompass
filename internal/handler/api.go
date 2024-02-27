@@ -67,7 +67,7 @@ func (a *API) TransactionGet(ctx *gin.Context) {
 	id, convErr := strconv.Atoi(idString)
 	if convErr != nil {
 		// TODO: Log it
-		ctx.AbortWithError(http.StatusInternalServerError, convErr)
+		ctx.AbortWithError(http.StatusBadRequest, convErr)
 		return
 	}
 	ta, taSelectErr := a.dbConn.TransactionSelect(ctx, int32(id))
